@@ -1671,3 +1671,98 @@ BEGIN
     RETURN qtd_jogos;
 END $$
 DELIMITER ;
+
+-- INDEX
+
+-- 1. TABELA: ADM
+CREATE INDEX idx_adm_nome
+ON ADM (Nome);
+
+-- 2. TABELA: USUARIO_PADRAO
+CREATE INDEX idx_usuario_nome
+ON Usuario_Padrao (Nome);
+
+-- 3. TABELA: PROFESSOR
+CREATE INDEX idx_professor_nome
+ON Professor (Nome);
+
+-- 4. TABELA: REGIAO
+CREATE INDEX idx_regiao_nome
+ON Regiao (Nome_Regiao);
+
+-- 5. TABELA: QUIZ
+CREATE INDEX idx_quiz_nome
+ON Quiz (Nome_Quiz);
+
+-- 6. TABELA: ESTADO
+CREATE INDEX idx_estado_nome 
+ON Estado (Nome_Estado);
+
+CREATE INDEX idx_estado_regiao 
+ON Estado (ID_Regiao);
+
+-- 7. TABELA: PERFIL_USUARIO
+CREATE INDEX idx_perfil_nome 
+ON Perfil_Usuario (Nome);
+
+CREATE INDEX idx_perfil_usuario 
+ON Perfil_Usuario (ID_Usuario);
+
+-- 8. TABELA: INFO_REGIAO
+CREATE INDEX idx_inforegiao_texto 
+ON Info_Regiao (Info_Regiao(255));
+
+CREATE INDEX idx_inforegiao_regiao 
+ON Info_Regiao (ID_Regiao);
+
+-- 9. TABELA: NOTAS
+CREATE INDEX idx_notas_usuario 
+ON Notas (ID_Usuario);
+
+CREATE INDEX idx_notas_quiz 
+ON Notas (ID_Quiz);
+
+CREATE INDEX idx_notas_professor 
+ON Notas (ID_Professor);
+
+-- 10. TABELA: PERGUNTA
+CREATE INDEX idx_pergunta_enunciado 
+ON Pergunta (Enunciado(255));
+
+CREATE INDEX idx_pergunta_quiz 
+ON Pergunta (ID_Quiz);
+
+CREATE INDEX idx_pergunta_estado 
+ON Pergunta (ID_Estado);
+
+-- 11. TABELA: MINIJOGO
+CREATE INDEX idx_minijogo_nome 
+ON MiniJogo (Nome_Jogo);
+
+CREATE INDEX idx_minijogo_regiao 
+ON MiniJogo (ID_Regiao);
+
+-- 12. TABELA: ALTERNATIVA
+CREATE INDEX idx_alternativa_descricao 
+ON Alternativa (Descricao(255));
+
+CREATE INDEX idx_alternativa_pergunta 
+ON Alternativa (ID_Pergunta);
+
+
+-- ====================================================================
+-- COMANDOS PARA VISUALIZAR OS ÍNDICES NO CONSOLE/PAINEL
+-- ====================================================================
+
+SHOW INDEX FROM ADM;
+SHOW INDEX FROM Usuario_Padrao;
+SHOW INDEX FROM Professor;
+SHOW INDEX FROM Regiao;
+SHOW INDEX FROM Quiz;
+SHOW INDEX FROM Estado;
+SHOW INDEX FROM Perfil_Usuario;
+SHOW INDEX FROM Info_Regiao;
+SHOW INDEX FROM Notas;
+SHOW INDEX FROM Pergunta;
+SHOW INDEX FROM MiniJogo;
+SHOW INDEX FROM Alternativa;
