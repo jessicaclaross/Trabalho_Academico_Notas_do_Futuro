@@ -718,3 +718,956 @@ SELECT * FROM Usuario_Padrao;
 DESC Adm;
 
 -- DISTINCT Ignora valores duplicados EX SELECT DISTINCT Pergunta;
+
+
+SELECT Nome 
+FROM Usuario_Padrao
+WHERE ID_Usuario IN (	
+SELECT ID_Usuario 
+    FROM Notas 
+    WHERE Nota > 9.00
+    );
+
+select adm;
+
+SELECT nome
+FROM adm
+WHERE 'Jessica Claro';
+
+-- SELECT COM JUNCAO DE TABELAS
+-- Me retorna o Usuario e a Nota que ele tirou
+SELECT 
+Usuario_Padrao.Nome AS Usuario, 
+Notas.Nota
+FROM 
+Usuario_Padrao, 
+Notas
+WHERE 
+Usuario_Padrao.ID_Usuario = Notas.ID_Usuario;
+
+-- Retorna os Usuarios e link da foto de perfil
+SELECT 
+U.Nome AS Usuario, 
+P.Foto
+FROM 
+Usuario_Padrao U, 
+Perfil_Usuario P
+WHERE 
+U.ID_Usuario = P.ID_Usuario;
+
+-- Trazer o nome da regiao e os estados que pertencem a ela
+SELECT 
+R.Nome_Regiao, 
+E.Nome_Estado
+FROM 
+Regiao R, 
+Estado E
+WHERE 
+R.ID_Regiao = E.ID_Regiao;
+
+-- Listar o nome do Quizz e o seu enunciado apenas de uma regiao especifica
+SELECT 
+R.Nome_Regiao, 
+M.Nome_Jogo
+FROM 
+Regiao R, 
+MiniJogo M
+WHERE 
+    R.ID_Regiao = M.ID_Regiao
+    AND R.Nome_Regiao = 'Nordeste';
+    
+-- Traz o enunciado e a pergunta correta
+SELECT 
+P.Enunciado, 
+A.Descricao
+FROM 
+Pergunta P, 
+Alternativa A
+WHERE 
+P.ID_Pergunta = A.ID_Pergunta
+AND A.Alternativa_Correta = TRUE;
+
+-- PALOMA - SELECT/SUBSELECT --
+
+-- NOTAS ACIMA DA MEDIA -- 
+
+	SELECT Nome
+	FROM Usuario_Padrao
+	WHERE ID_Usuario IN (
+		SELECT ID_Usuario
+		FROM Notas
+		WHERE Nota > (
+			SELECT AVG(Nota)
+			FROM Notas
+		)
+	);
+    
+ -- PROFESSOR NOTAS ACIMA DA MEDIA --    -- IN RETORNA VARIOS VALORES --
+    
+SELECT Nome
+FROM Professor
+WHERE ID_Professor IN (
+    SELECT ID_Professor
+    FROM Notas
+    WHERE Nota = (
+        SELECT MAX(Nota)
+        FROM Notas
+    )
+);
+
+ -- quiz nota minima  --    -- IN RETORNA VARIOS VALORES --
+ 
+SELECT Nome_Quiz
+FROM Quiz
+WHERE ID_Quiz = (
+    SELECT ID_Quiz
+    FROM Notas
+    WHERE Nota = (
+        SELECT MIN(Nota)
+        FROM Notas
+    )
+);
+
+-- tras os estados dentro da região selecionada -- 
+
+SELECT Nome_Estado
+FROM Estado
+WHERE ID_Regiao = (
+    SELECT ID_Regiao
+    FROM Regiao
+    WHERE Nome_Regiao = 'Sudeste'
+);
+
+-- Quais usuários fizeram o Quiz São Paulo? --
+
+SELECT Nome
+FROM Usuario_Padrao
+WHERE ID_Usuario IN (
+    SELECT ID_Usuario
+    FROM Notas
+    WHERE ID_Quiz = (
+        SELECT ID_Quiz
+        FROM Quiz
+        WHERE Nome_Quiz = 'Quiz São Paulo'
+    )
+);
+
+-- Views com filtragem --
+
+-- 1. Usuários com nota acima de 8 --
+CREATE VIEW vw_Usuarios_Nota_Alta AS
+SELECT u.Nome, n.Nota
+FROM Usuario_Padrao u
+JOIN Notas n
+ON u.ID_Usuario = n.ID_Usuario
+WHERE n.Nota > 8;
+
+SELECT * FROM vw_Usuarios_Nota_Alta;
+-- mostra apenas os alunos com desempenho alto (acima de 8) --
+
+-- 2. Professores que corrigiram notas acima de 9 -- 
+CREATE VIEW vw_Professores_Excelencia AS
+SELECT p.Nome, n.Nota
+FROM Professor p
+JOIN Notas n
+ON p.ID_Professor = n.ID_Professor
+WHERE n.Nota >= 9;
+
+SELECT * FROM vw_Professores_Excelencia;
+-- exibe os professores associados às melhores notas. --
+
+-- 3. Estados da Região Sudeste -- 
+CREATE VIEW vw_Estados_Sudeste AS
+SELECT e.Nome_Estado, e.Sigla
+FROM Estado e
+JOIN Regiao r
+ON e.ID_Regiao = r.ID_Regiao
+WHERE r.Nome_Regiao = 'Sudeste';
+
+SELECT * FROM vw_Estados_Sudeste;
+-- mostra apenas os estados pertencentes ao Sudeste. --
+
+-- 4. Usuários e os quizzes que realizaram -- 
+CREATE VIEW vw_Usuarios_Quiz AS
+SELECT u.Nome AS Usuario,
+       q.Nome_Quiz,
+       n.Nota
+FROM Usuario_Padrao u
+JOIN Notas n
+    ON u.ID_Usuario = n.ID_Usuario
+JOIN Quiz q
+    ON n.ID_Quiz = q.ID_Quiz
+WHERE n.Nota >= 7;
+
+SELECT * FROM vw_Usuarios_Quiz;
+-- mostra os usuários aprovados (nota maior ou igual a 7), qual quiz fizeram e a nota obtida.--
+
+-- 5. Usuários e os quizzes que realizaram -- 
+CREATE VIEW vw_Informacoes_Regioes AS
+SELECT r.Nome_Regiao,
+       ir.Info_Regiao
+FROM Regiao r
+JOIN Info_Regiao ir
+    ON r.ID_Regiao = ir.ID_Regiao
+WHERE LENGTH(ir.Info_Regiao) > 200;
+
+SELECT * FROM vw_Informacoes_Regioes;
+-- exibe apenas as regiões que possuem descrições detalhadas cadastradas.--
+
+-- criação de backup 
+
+CREATE TABLE backup_ADM like ADM;
+insert into backup_ADM (select * from ADM);
+select * from backup_ADM;
+
+CREATE TABLE backup_Alternativa like Alternativa;
+insert into backup_Alternativa (select * from Alternativa);
+select * from backup_Alternativa;
+
+CREATE TABLE backup_Estado like Estado;
+insert into backup_Estado (select * from Estado);
+select * from backup_Estado;
+
+CREATE TABLE backup_Info_regiao like Info_regiao;
+insert into backup_Info_regiao (select * from Info_regiao);
+select * from backup_Info_regiao;
+
+CREATE TABLE backup_MiniJogo like MiniJogo;
+insert into backup_MiniJogo (select * from MiniJogo);
+select * from backup_MiniJogo;
+
+CREATE TABLE backup_Notas like Notas;
+insert into backup_Notas (select * from Notas);
+select * from backup_Notas;
+
+CREATE TABLE backup_Perfil_Usuario like Perfil_Usuario;
+insert into backup_Perfil_Usuario (select * From Perfil_Usuario);
+select * from backup_Perfil_Usuario;
+
+CREATE TABLE backup_Pergunta like Pergunta;
+insert into backup_Pergunta (select * from Pergunta);
+select * from backup_Pergunta;
+
+CREATE TABLE backup_Professor like Professor;
+insert into backup_Professor (select * from Professor);
+select * from backup_Professor;
+
+CREATE TABLE backup_Quiz like Quiz;
+insert into backup_Quiz (select * from Quiz);
+select * from backup_Quiz;
+
+
+CREATE TABLE backup_Regiao like Regiao;
+insert into backup_Regiao (select * from Regiao);
+select * from backup_Regiao;
+
+CREATE TABLE backup_Usuario_Padrao like Usuario_Padrao;
+insert into backup_Usuario_Padrao (select * from Usuario_Padrao);
+select * from backup_Usuario_Padrao;
+
+-- criação de trigger para atualização automática das tabelas de backup
+
+-- backup ADM
+
+DELIMITER $$
+
+CREATE TRIGGER trg_adm_insert AFTER INSERT ON ADM
+FOR EACH ROW
+BEGIN
+    INSERT INTO backup_ADM VALUES (
+        NEW.ID_Adm, NEW.Nome, NEW.Login_usuario_Adm, NEW.SENHA, NEW.RGM
+    );
+END $$
+
+CREATE TRIGGER trg_adm_update AFTER UPDATE ON ADM
+FOR EACH ROW
+BEGIN
+    UPDATE backup_ADM SET
+        Nome = NEW.Nome,
+        Login_usuario_Adm = NEW.Login_usuario_Adm,
+        SENHA = NEW.SENHA,
+        RGM = NEW.RGM
+    WHERE ID_Adm = NEW.ID_Adm;
+END $$
+
+CREATE TRIGGER trg_adm_delete AFTER DELETE ON ADM
+FOR EACH ROW
+BEGIN
+    DELETE FROM backup_ADM WHERE ID_Adm = OLD.ID_Adm;
+END $$
+
+DELIMITER ;
+
+-- backup úsuario padrao
+
+DELIMITER $$
+
+CREATE TRIGGER trg_usuario_insert AFTER INSERT ON Usuario_Padrao
+FOR EACH ROW
+BEGIN
+    INSERT INTO backup_Usuario_Padrao VALUES (
+        NEW.ID_Usuario, NEW.Email, NEW.SENHA, NEW.Nome
+    );
+END $$
+
+CREATE TRIGGER trg_usuario_update AFTER UPDATE ON Usuario_Padrao
+FOR EACH ROW
+BEGIN
+    UPDATE backup_Usuario_Padrao SET
+        Email = NEW.Email,
+        SENHA = NEW.SENHA,
+        Nome = NEW.Nome
+    WHERE ID_Usuario = NEW.ID_Usuario;
+END $$
+
+CREATE TRIGGER trg_usuario_delete AFTER DELETE ON Usuario_Padrao
+FOR EACH ROW
+BEGIN
+    DELETE FROM backup_Usuario_Padrao WHERE ID_Usuario = OLD.ID_Usuario;
+END $$
+
+DELIMITER ;
+
+-- backup professor
+
+DELIMITER $$
+
+CREATE TRIGGER trg_professor_insert AFTER INSERT ON Professor
+FOR EACH ROW
+BEGIN
+    INSERT INTO backup_Professor VALUES (
+        NEW.ID_Professor, NEW.Email, NEW.Nome, NEW.Senha
+    );
+END $$
+
+CREATE TRIGGER trg_professor_update AFTER UPDATE ON Professor
+FOR EACH ROW
+BEGIN
+    UPDATE backup_Professor SET
+        Email = NEW.Email,
+        Nome = NEW.Nome,
+        Senha = NEW.Senha
+    WHERE ID_Professor = NEW.ID_Professor;
+END $$
+
+CREATE TRIGGER trg_professor_delete AFTER DELETE ON Professor
+FOR EACH ROW
+BEGIN
+    DELETE FROM backup_Professor WHERE ID_Professor = OLD.ID_Professor;
+END $$
+
+DELIMITER ;
+
+-- backup regiao
+
+DELIMITER $$
+
+CREATE TRIGGER trg_regiao_insert AFTER INSERT ON Regiao
+FOR EACH ROW BEGIN
+INSERT INTO backup_Regiao VALUES (NEW.ID_Regiao, NEW.Nome_Regiao);
+END $$
+
+CREATE TRIGGER trg_regiao_update AFTER UPDATE ON Regiao
+FOR EACH ROW BEGIN
+UPDATE backup_Regiao SET Nome_Regiao=NEW.Nome_Regiao
+WHERE ID_Regiao=NEW.ID_Regiao;
+END $$
+
+CREATE TRIGGER trg_regiao_delete AFTER DELETE ON Regiao
+FOR EACH ROW BEGIN
+DELETE FROM backup_Regiao WHERE ID_Regiao=OLD.ID_Regiao;
+END $$
+
+DELIMITER ;
+
+-- backup notas
+
+DELIMITER $$
+
+CREATE TRIGGER trg_notas_insert AFTER INSERT ON Notas
+FOR EACH ROW
+BEGIN
+    INSERT INTO backup_Notas VALUES (
+        NEW.ID_Nota, NEW.Nota, NEW.ID_Quiz, NEW.ID_Usuario, NEW.ID_Professor
+    );
+END $$
+
+CREATE TRIGGER trg_notas_update AFTER UPDATE ON Notas
+FOR EACH ROW
+BEGIN
+    UPDATE backup_Notas SET
+        Nota = NEW.Nota,
+        ID_Quiz = NEW.ID_Quiz,
+        ID_Usuario = NEW.ID_Usuario,
+        ID_Professor = NEW.ID_Professor
+    WHERE ID_Nota = NEW.ID_Nota;
+END $$
+
+CREATE TRIGGER trg_notas_delete AFTER DELETE ON Notas
+FOR EACH ROW
+BEGIN
+    DELETE FROM backup_Notas WHERE ID_Nota = OLD.ID_Nota;
+END $$
+
+DELIMITER ;
+
+-- backup Quiz
+
+DELIMITER $$
+
+CREATE TRIGGER trg_quiz_insert AFTER INSERT ON Quiz
+FOR EACH ROW
+BEGIN
+    INSERT INTO backup_Quiz VALUES (
+        NEW.ID_Quiz, NEW.Nome_Quiz
+    );
+END $$
+
+CREATE TRIGGER trg_quiz_update AFTER UPDATE ON Quiz
+FOR EACH ROW
+BEGIN
+    UPDATE backup_Quiz SET
+        Nome_Quiz = NEW.Nome_Quiz
+    WHERE ID_Quiz = NEW.ID_Quiz;
+END $$
+
+CREATE TRIGGER trg_quiz_delete AFTER DELETE ON Quiz
+FOR EACH ROW
+BEGIN
+    DELETE FROM backup_Quiz WHERE ID_Quiz = OLD.ID_Quiz;
+END $$
+
+DELIMITER ;
+
+-- backup estado
+
+DELIMITER $$
+
+CREATE TRIGGER trg_estado_insert AFTER INSERT ON Estado
+FOR EACH ROW BEGIN
+INSERT INTO backup_Estado VALUES (NEW.ID_Estado, NEW.Nome_Estado, NEW.Sigla, NEW.ID_Regiao);
+END $$
+
+CREATE TRIGGER trg_estado_update AFTER UPDATE ON Estado
+FOR EACH ROW BEGIN
+UPDATE backup_Estado SET Nome_Estado=NEW.Nome_Estado, Sigla=NEW.Sigla, ID_Regiao=NEW.ID_Regiao
+WHERE ID_Estado=NEW.ID_Estado;
+END $$
+
+CREATE TRIGGER trg_estado_delete AFTER DELETE ON Estado
+FOR EACH ROW BEGIN
+DELETE FROM backup_Estado WHERE ID_Estado=OLD.ID_Estado;
+END $$
+
+DELIMITER ;
+
+-- backup pergunta 
+
+DELIMITER $$
+
+CREATE TRIGGER trg_pergunta_insert AFTER INSERT ON Pergunta
+FOR EACH ROW BEGIN
+INSERT INTO backup_Pergunta VALUES (NEW.ID_Pergunta, NEW.Enunciado, NEW.ID_Quiz, NEW.ID_Estado);
+END $$
+
+CREATE TRIGGER trg_pergunta_update AFTER UPDATE ON Pergunta
+FOR EACH ROW BEGIN
+UPDATE backup_Pergunta SET Enunciado=NEW.Enunciado, ID_Quiz=NEW.ID_Quiz, ID_Estado=NEW.ID_Estado
+WHERE ID_Pergunta=NEW.ID_Pergunta;
+END $$
+
+CREATE TRIGGER trg_pergunta_delete AFTER DELETE ON Pergunta
+FOR EACH ROW BEGIN
+DELETE FROM backup_Pergunta WHERE ID_Pergunta=OLD.ID_Pergunta;
+END $$
+
+DELIMITER ;
+
+-- backup alternativa
+
+DELIMITER $$
+
+CREATE TRIGGER trg_alt_insert AFTER INSERT ON Alternativa
+FOR EACH ROW BEGIN
+INSERT INTO backup_Alternativa VALUES (NEW.ID_Alternativa, NEW.Descricao, NEW.Alternativa_Correta, NEW.ID_Pergunta);
+END $$
+
+CREATE TRIGGER trg_alt_update AFTER UPDATE ON Alternativa
+FOR EACH ROW BEGIN
+UPDATE backup_Alternativa SET Descricao=NEW.Descricao,
+Alternativa_Correta=NEW.Alternativa_Correta, ID_Pergunta=NEW.ID_Pergunta
+WHERE ID_Alternativa=NEW.ID_Alternativa;
+END $$
+
+CREATE TRIGGER trg_alt_delete AFTER DELETE ON Alternativa
+FOR EACH ROW BEGIN
+DELETE FROM backup_Alternativa WHERE ID_Alternativa=OLD.ID_Alternativa;
+END $$
+
+DELIMITER ;
+
+-- backup perfil usuario
+
+DELIMITER $$
+
+CREATE TRIGGER trg_perfil_insert AFTER INSERT ON Perfil_Usuario
+FOR EACH ROW BEGIN
+INSERT INTO backup_Perfil_Usuario VALUES (NEW.Id_Perfil, NEW.Nome, NEW.Foto, NEW.ID_Usuario);
+END $$
+
+CREATE TRIGGER trg_perfil_update AFTER UPDATE ON Perfil_Usuario
+FOR EACH ROW BEGIN
+UPDATE backup_Perfil_Usuario SET Nome=NEW.Nome, Foto=NEW.Foto, ID_Usuario=NEW.ID_Usuario
+WHERE Id_Perfil=NEW.Id_Perfil;
+END $$
+
+CREATE TRIGGER trg_perfil_delete AFTER DELETE ON Perfil_Usuario
+FOR EACH ROW BEGIN
+DELETE FROM backup_Perfil_Usuario WHERE Id_Perfil=OLD.Id_Perfil;
+END $$
+
+DELIMITER ;
+
+-- backup info regiao
+
+DELIMITER $$
+
+CREATE TRIGGER trg_perfil_insert AFTER INSERT ON Perfil_Usuario
+FOR EACH ROW BEGIN
+INSERT INTO backup_Perfil_Usuario VALUES (NEW.Id_Perfil, NEW.Nome, NEW.Foto, NEW.ID_Usuario);
+END $$
+
+CREATE TRIGGER trg_perfil_update AFTER UPDATE ON Perfil_Usuario
+FOR EACH ROW BEGIN
+UPDATE backup_Perfil_Usuario SET Nome=NEW.Nome, Foto=NEW.Foto, ID_Usuario=NEW.ID_Usuario
+WHERE Id_Perfil=NEW.Id_Perfil;
+END $$
+
+CREATE TRIGGER trg_perfil_delete AFTER DELETE ON Perfil_Usuario
+FOR EACH ROW BEGIN
+DELETE FROM backup_Perfil_Usuario WHERE Id_Perfil=OLD.Id_Perfil;
+END $$
+
+DELIMITER ;
+
+-- backup minijogo
+
+DELIMITER $$
+
+CREATE TRIGGER trg_mini_insert AFTER INSERT ON MiniJogo
+FOR EACH ROW BEGIN
+INSERT INTO backup_MiniJogo VALUES (NEW.ID_MiniJogo, NEW.Nome_Jogo, NEW.Tipo_Jogo, NEW.Descricao, NEW.ID_Regiao);
+END $$
+
+CREATE TRIGGER trg_mini_update AFTER UPDATE ON MiniJogo
+FOR EACH ROW BEGIN
+UPDATE backup_MiniJogo SET Nome_Jogo=NEW.Nome_Jogo, Tipo_Jogo=NEW.Tipo_Jogo,
+Descricao=NEW.Descricao, ID_Regiao=NEW.ID_Regiao
+WHERE ID_MiniJogo=NEW.ID_MiniJogo;
+END $$
+
+CREATE TRIGGER trg_mini_delete AFTER DELETE ON MiniJogo
+FOR EACH ROW BEGIN
+DELETE FROM backup_MiniJogo WHERE ID_MiniJogo=OLD.ID_MiniJogo;
+END $$
+
+DELIMITER ;
+
+-- Select com Junção de Tabelas usando Inner Join
+ 
+-- Consultar a nota de cada usuário:
+SELECT u.nome, n.nota
+FROM Usuario_Padrao U
+INNER JOIN Notas N
+ON U.ID_Usuario = N.ID_Usuario;
+ 
+-- Consultar a nota, o usuario e o professor que lançou a nota:
+SELECT U.Nome as Usuario, 
+P.Nome as Professor, 
+N.Nota
+FROM Notas N
+INNER JOIN Usuario_Padrao U 
+ON N.ID_Usuario = U.ID_Usuario
+INNER JOIN Professor P 
+ON N.ID_Professor = P.ID_Professor;
+ 
+-- Consultar estados com suas siglas e suas respectivas regiões:
+SELECT E.Nome_Estado,
+E.Sigla,
+R.Nome_Regiao
+FROM Estado E
+INNER JOIN Regiao R 
+ON E.ID_Regiao = R.ID_Regiao;
+ 
+-- Consultar perguntas e o quiz ao qual pertencem:
+SELECT Q.Nome_Quiz,
+P.Enunciado
+FROM Pergunta P 
+INNER JOIN Quiz Q
+ON P.ID_Quiz = Q.ID_Quiz;
+ 
+-- Para buscar a pergunta referente a um quiz específico pelo ID: 
+SELECT Q.Nome_Quiz,
+P.Enunciado
+FROM Pergunta P 
+INNER JOIN Quiz Q
+ON P.ID_Quiz = Q.ID_Quiz
+WHERE P.ID_Pergunta = 5;
+ 
+-- Consultar perguntas e alternativas corretas
+SELECT P.Enunciado,
+A.Descricao,
+A.Alternativa_Correta
+FROM Pergunta P 
+INNER JOIN Alternativa A 
+ON P.ID_Pergunta = A.ID_Pergunta;
+ 
+-- Consultar Notas e Quiz Realizado:
+SELECT Q.Nome_Quiz,
+N.Nota
+FROM Notas N 
+INNER JOIN Quiz Q
+ON N.ID_Quiz = Q.ID_Quiz;  
+ 
+ 
+-- PROCEDIMENTOS COM ESTRUTURA CONDICIONAL PARA EXECUTAR COMMIT E ROLLBACK
+ 
+-- Inserir usuario:
+DROP PROCEDURE IF EXISTS Inserir_Usuario
+DELIMITER //
+CREATE PROCEDURE Inserir_Usuario(
+	IN p_Email VARCHAR (100),
+    IN p_Senha VARCHAR(255),
+    IN p_Nome VARCHAR(100)
+)
+BEGIN
+	START TRANSACTION;
+    IF NOT EXISTS (
+    SELECT 1 FROM Usuario_Padrao
+    WHERE Email = p_Email
+    )THEN
+    INSERT INTO Usuario_padrao(Email, Senha, Nome)
+    VALUES (p_Email, p_Senha, p_Nome);
+	COMMIT; 
+    ELSE ROLLBACK;
+    END IF;
+END//
+DELIMITER ;
+ 
+-- Inserção de Dados
+CALL Inserir_Usuario(
+'joana@email.com',
+SHA2('Senha123', 256),
+'Joana Silva');
+ 
+-- Consulta
+SELECT * FROM Usuario_Padrao;
+ 
+-- Deletar uma linha
+DELETE FROM Usuario_Padrao
+WHERE Email = 'prof@email.com'
+ 
+-- Inserir professor:
+DROP PROCEDURE IF EXISTS Inserir_Professor
+DELIMITER //
+CREATE PROCEDURE Inserir_Professor(
+	IN p_Email VARCHAR (100),
+    IN p_Senha VARCHAR(255),
+    IN p_Nome VARCHAR(100)
+)
+BEGIN
+	START TRANSACTION;
+    IF NOT EXISTS (
+    SELECT 1 FROM PROFESSOR
+    WHERE Email = p_Email
+    )THEN
+    INSERT INTO Professor(Email, Senha, Nome)
+    VALUES (p_Email, p_Senha, p_Nome);
+	COMMIT; 
+    ELSE ROLLBACK;
+    END IF;
+END//
+DELIMITER ;
+ 
+-- Inserção de Dados
+CALL Inserir_Professor(
+'prof@email.com',
+SHA2('Prof123', 256),
+'Marcos Souza');
+ 
+-- Consulta
+SELECT * FROM PROFESSOR;
+ 
+-- Inserir perguntas:
+DROP PROCEDURE IF EXISTS Inserir_Perguntas
+DELIMITER //
+CREATE PROCEDURE Inserir_Perguntas(
+	IN p_Enunciado TEXT,
+    IN p_ID_Quiz SMALLINT,
+    IN p_ID_Estado SMALLINT
+)
+BEGIN
+	START TRANSACTION;
+    IF EXISTS (
+    SELECT 1 FROM Quiz
+    WHERE ID_Quiz = p_ID_Quiz
+    )
+    AND EXISTS (
+    SELECT 1 FROM Estado
+    WHERE ID_Estado = p_ID_Estado
+    )THEN
+    INSERT INTO Pergunta (Enunciado, ID_Quiz, ID_Estado)
+    VALUES (p_Enunciado, p_ID_Quiz, p_ID_Estado);
+	COMMIT; 
+    ELSE ROLLBACK;
+    END IF;
+END//
+DELIMITER ;
+ 
+-- Inserção de Dados
+CALL  Inserir_Perguntas(
+'Qual é a capital do estado de São Paulo?',
+25,
+25
+);
+ 
+-- Consulta
+SELECT * FROM Pergunta;
+ 
+-- Validar se a nota está entre 0 e 10 e se o usuário, quiz e professor ja existem:
+DROP PROCEDURE IF EXISTS Inserir_Nota_Validada
+DELIMITER //
+CREATE PROCEDURE Inserir_Nota_Validada(
+	IN p_Nota TEXT,
+    IN p_ID_Quiz SMALLINT,
+    IN p_ID_Usuario SMALLINT,
+    IN p_ID_Professor SMALLINT
+)
+BEGIN
+	START TRANSACTION;
+    IF p_Nota BETWEEN 0 AND 10
+    AND EXISTS(
+    SELECT 1 FROM Usuario_Padrao
+    WHERE ID_Usuario = p_ID_Usuario
+    )
+    AND EXISTS (
+    SELECT 1 FROM Quiz
+    WHERE ID_Quiz = p_ID_Quiz
+    )
+    AND EXISTS (
+    SELECT 1 FROM Professor 
+    WHERE ID_Professor = p_ID_Professor
+    )THEN
+    INSERT INTO Notas (Nota, ID_Quiz, ID_Usuario, ID_Professor)
+    VALUES (p_Nota, p_ID_Quiz, p_ID_Usuario, p_ID_Professor);
+	COMMIT; 
+    ELSE ROLLBACK;
+    END IF;
+END//
+DELIMITER ;
+ 
+-- Inserção de Dados
+CALL  Inserir_Nota_Validada(
+8.5,1,1,1
+);
+ 
+-- Consulta
+SELECT * FROM Notas;
+ 
+ 
+-- Atualizar Nota:
+DROP PROCEDURE IF EXISTS Atualizar_Nota
+DELIMITER //
+CREATE PROCEDURE Atualizar_Nota(
+	IN p_ID_Nota SMALLINT,
+    IN p_Nova_Nota DECIMAL(4,2)
+)
+BEGIN
+	START TRANSACTION;
+    IF EXISTS(
+    SELECT 1 FROM Notas
+    WHERE ID_Nota = p_ID_Nota
+    )
+    AND p_Nova_Nota BETWEEN 0 AND 10
+    THEN
+    UPDATE Notas 
+    SET Nota = p_Nova_Nota
+    WHERE ID_Nota = p_ID_Nota;
+	COMMIT; 
+    ELSE ROLLBACK;
+    END IF;
+END//
+DELIMITER ;
+ 
+-- Inserção de Dados
+CALL  Atualizar_Nota(
+1,9.5
+);
+ 
+ 
+-- Consulta
+SELECT * FROM Notas WHERE ID_Nota = 1;
+
+-- Procedures e função 
+
+-- Listar os 10 melhores desempenhos (Top 10 Notas)
+DELIMITER $$
+CREATE PROCEDURE Listar_Top_10_Notas()
+BEGIN
+    SELECT 
+        U.Nome AS Usuario,
+        Q.Nome_Quiz,
+        N.Nota
+    FROM Notas N
+    INNER JOIN Usuario_Padrao U ON N.ID_Usuario = U.ID_Usuario
+    INNER JOIN Quiz Q ON N.ID_Quiz = Q.ID_Quiz
+    ORDER BY N.Nota DESC
+    LIMIT 10;
+END $$
+DELIMITER ;
+
+-- Relatório de Usuários sem interação (Sem Notas)
+DELIMITER $$
+CREATE PROCEDURE Relatorio_Usuarios_Sem_Notas()
+BEGIN
+    SELECT 
+        U.ID_Usuario,
+        U.Nome,
+        U.Email
+    FROM Usuario_Padrao U
+    LEFT JOIN Notas N ON U.ID_Usuario = N.ID_Usuario
+    WHERE N.ID_Nota IS NULL;
+END $$
+DELIMITER ;
+
+-- Buscar Perguntas e Respostas por Quiz
+DELIMITER $$
+CREATE PROCEDURE Buscar_Perguntas_Por_Quiz(IN p_ID_Quiz SMALLINT)
+BEGIN
+    SELECT 
+        P.ID_Pergunta,
+        P.Enunciado,
+        A.Descricao AS Resposta_Correta
+    FROM Pergunta P
+    INNER JOIN Alternativa A ON P.ID_Pergunta = A.ID_Pergunta
+    WHERE P.ID_Quiz = p_ID_Quiz AND A.Alternativa_Correta = TRUE;
+END $$
+DELIMITER ;
+
+-- Registrar Interação do Usuário na Região
+DELIMITER $$
+CREATE PROCEDURE Registrar_Interacao(
+    IN p_ID_Usuario SMALLINT,
+    IN p_ID_Regiao SMALLINT
+)
+BEGIN
+    START TRANSACTION;
+    IF EXISTS (SELECT 1 FROM Usuario_Padrao WHERE ID_Usuario = p_ID_Usuario) 
+       AND EXISTS (SELECT 1 FROM Regiao WHERE ID_Regiao = p_ID_Regiao) 
+       AND NOT EXISTS (SELECT 1 FROM Interacao WHERE ID_Usuario = p_ID_Usuario AND ID_Regiao = p_ID_Regiao)
+    THEN
+        INSERT INTO Interacao (ID_Usuario, ID_Regiao) VALUES (p_ID_Usuario, p_ID_Regiao);
+        COMMIT;
+    ELSE 
+        ROLLBACK;
+    END IF;
+END $$
+DELIMITER ;
+
+-- Excluir Usuário e Seus Dados
+DELIMITER $$
+CREATE PROCEDURE Excluir_Usuario_Seguro(IN p_ID_Usuario SMALLINT)
+BEGIN
+    START TRANSACTION;
+    IF EXISTS (SELECT 1 FROM Usuario_Padrao WHERE ID_Usuario = p_ID_Usuario) THEN
+        -- Deleta as notas do usuario primeiro
+        DELETE FROM Notas WHERE ID_Usuario = p_ID_Usuario;
+        -- Deleta o usuario
+        DELETE FROM Usuario_Padrao WHERE ID_Usuario = p_ID_Usuario;
+        COMMIT;
+    ELSE
+        ROLLBACK;
+    END IF;
+END $$
+DELIMITER ;
+
+-- Total de Usuários Cadastrados
+DELIMITER $$
+CREATE FUNCTION Total_Usuarios_Cadastrados() 
+RETURNS INT
+DETERMINISTIC
+BEGIN
+    DECLARE total INT;
+    SELECT COUNT(*) INTO total FROM Usuario_Padrao;
+    RETURN total;
+END $$
+DELIMITER ;
+
+-- Média Geral de Todas as Notas
+DELIMITER $$
+CREATE FUNCTION Media_Geral_Notas() 
+RETURNS DECIMAL(4,2)
+DETERMINISTIC
+BEGIN
+    DECLARE media DECIMAL(4,2);
+    SELECT IFNULL(AVG(Nota), 0) INTO media FROM Notas;
+    RETURN media;
+END $$
+DELIMITER ;
+
+-- Média de Notas por Usuário
+DELIMITER $$
+CREATE FUNCTION Media_Notas_Usuario(p_ID_Usuario SMALLINT) 
+RETURNS DECIMAL(4,2)
+DETERMINISTIC
+BEGIN
+    DECLARE media_usuario DECIMAL(4,2);
+    SELECT IFNULL(AVG(Nota), 0) INTO media_usuario 
+    FROM Notas 
+    WHERE ID_Usuario = p_ID_Usuario;
+    
+    RETURN media_usuario;
+END $$
+DELIMITER ;
+
+-- Verificar Status de Aprovação no Quiz
+DELIMITER $$
+CREATE FUNCTION Verificar_Aprovacao(p_ID_Usuario SMALLINT, p_ID_Quiz SMALLINT) 
+RETURNS VARCHAR(20)
+DETERMINISTIC
+BEGIN
+    DECLARE nota_obtida DECIMAL(4,2);
+    DECLARE status_resultado VARCHAR(20);
+    
+    SELECT Nota INTO nota_obtida 
+    FROM Notas 
+    WHERE ID_Usuario = p_ID_Usuario AND ID_Quiz = p_ID_Quiz 
+    LIMIT 1;
+    
+    IF nota_obtida IS NULL THEN
+        SET status_resultado = 'Pendente';
+    ELSEIF nota_obtida >= 7.00 THEN
+        SET status_resultado = 'Aprovado';
+    ELSE
+        SET status_resultado = 'Reprovado';
+    END IF;
+    
+    RETURN status_resultado;
+END $$
+DELIMITER ;
+
+-- Contar Minijogos por Região
+DELIMITER $$
+CREATE FUNCTION Contar_Minijogos_Regiao(p_ID_Regiao SMALLINT) 
+RETURNS INT
+DETERMINISTIC
+BEGIN
+    DECLARE qtd_jogos INT;
+    
+    SELECT COUNT(*) INTO qtd_jogos 
+    FROM MiniJogo 
+    WHERE ID_Regiao = p_ID_Regiao;
+    
+    RETURN qtd_jogos;
+END $$
+DELIMITER ;
